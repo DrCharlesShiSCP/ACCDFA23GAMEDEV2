@@ -25,6 +25,10 @@ public class CharacterSelectionAndMove : MonoBehaviour
         {
             GetComponent<Renderer>().material = selectedMaterial;
         }
+        else
+        {
+            GetComponent<Renderer>().material = originalMaterial;
+        }
     }
 
     public void SelectCharacter()

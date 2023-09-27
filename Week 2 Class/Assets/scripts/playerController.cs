@@ -32,7 +32,7 @@ public class playerController : MonoBehaviour
             GameObject clickedObject = hit.collider.gameObject;
 
             // Check if the clicked object is a selectable character
-            if (clickedObject.CompareTag("Characters"))
+            if (clickedObject.CompareTag("Characters") && !clickedObject.GetComponent<CharacterSelectionAndMove>().gotSelect)
             {
                 // Deselect the currently selected character (if any)
                 clickedObject.GetComponent<CharacterSelectionAndMove>().DeselectCharacter();
@@ -40,6 +40,9 @@ public class playerController : MonoBehaviour
                 // Select the clicked character
                 //clickedObject.GetComponent<CharacterSelectionAndMove>().SelectCharacter();
                 clickedObject.GetComponent<CharacterSelectionAndMove>().gotSelect = true;
+            }else if (clickedObject.CompareTag("Characters") && clickedObject.GetComponent<CharacterSelectionAndMove>().gotSelect)
+            {
+                clickedObject.GetComponent<CharacterSelectionAndMove>().gotSelect = false;
             }
         }
     }
