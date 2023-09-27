@@ -6,25 +6,79 @@ using UnityEngine.AI;
 public class StateBasedCharacter : MonoBehaviour
 {
     //list of states
-   public enum States
+    public enum States
     {
-        Idle,
-        Patrol,
-        Follow,
-        Random
+        Idle = 1,
+        Patrol = 2,
+        Random = 3
     }
+
+    public enum Colors
+    {
+        Red = 4,
+        Blue = 5,
+        Yellow = 6
+    }
+
     public States currentState;
+    public Colors currentColor;
     public NavMeshAgent agent;
     public Vector3 followPosition;
     //patrol 
-    public List<Vector3>
-        public float patrolMin
+    public List<Vector3> patrolPositions;
+    public int patrolIndex;
+    public float patrolMinDistance = 1f;
     //Random variables
-    public float randomMax = 1f();
-    public float randomMin = -1f();
-
-    
+    public float randomMax = 1f;
+    public float randomMin = -1f;
+    public float randomTimer = 0f;
+    public float randomCountdown = 0f;
     void Update()
+    {
+        // Check for key presses to update state and color
+        CheckInput();
+
+        // Handle the character's behavior based on the current state
+        HandleState();
+    }
+
+    void CheckInput()
+    {
+        // Check for key presses to update state and color
+        if (Input.GetKeyDown(KeyCode.Alpha1)) 
+        {
+            currentState = States.Idle;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2)) 
+        {
+            currentState = States.Patrol;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            currentState = States.Random;
+        }
+
+        // Check for key presses to update color
+        if (Input.GetKeyDown(KeyCode.Alpha4)) 
+        {
+            currentColor = Colors.Red;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha5)) 
+        {
+            currentColor = Colors.Blue;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha6)) 
+        {
+            currentColor = Colors.Yellow;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            UpdateStateBasedOnColor(currentColor);
+        }
+    }
+
+    void HandleState()
     {
         switch (currentState)
         {
@@ -32,13 +86,13 @@ public class StateBasedCharacter : MonoBehaviour
                 UpdateIdle();
                 break;
             case States.Patrol:
-                UpdateIdle();
+                UpdatePatrol();
                 break;
-            case States.Follow:
-                UpdateIdle();
-                break;
+            /*case States.Follow:
+                UpdateFollow();
+                break;*/
             case States.Random:
-                UpdateIdle();
+                UpdateRandom();
                 break;
         }
     }
@@ -47,22 +101,22 @@ public class StateBasedCharacter : MonoBehaviour
     {
         agent.isStopped = true;
     }
-    void UpdateFollow()
+    /*void UpdateFollow()
     {
         agent.isStopped = false;
         agent.SetDestination(followPosition);
-    }
+    }*/
     void UpdatePatrol()
     {
-        Vector3 targetPosition = patrolPosition[patrolIndex];
+        Vector3 targetPosition = patrolPositions[patrolIndex];
         Vector3 ourPosition = transform.position;
         Vector3 delta = targetPosition - ourPosition;
         if (delta.magnitude < 0.1f)
         {
             patrolIndex++;
-            if(UpdatePatrolindex >= patrolPositions.Count)
+            if(patrolIndex >= patrolPositions.Count)
             {
-
+                patrolIndex = 0;
             }
         }
     }
@@ -77,7 +131,18 @@ public class StateBasedCharacter : MonoBehaviour
             float randomZ = Random.Range(randomMin, randomMax);
 
             Vector3 newRandomPosition = new Vector3(randomX, randomZ);
-            agent.SetDestination(newRandomPosition)
+            agent.SetDestination(newRandomPosition);
+        }
+    }
+    void UpdateStateBasedOnColor(Colors color)
+    {
+        StateBasedCharacter[] characters = FindObjectsOfType<StateBasedCharacter>();
+        foreach (StateBasedCharacter character in characters)
+        {
+            if (character.currentColor == color)
+            {
+                character.currentState = currentState;
+            }
         }
     }
 }
