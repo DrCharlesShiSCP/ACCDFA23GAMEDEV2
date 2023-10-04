@@ -30,12 +30,11 @@ public class playerController : MonoBehaviour
         if (Physics.Raycast(ray, out hit))
         {
             GameObject clickedObject = hit.collider.gameObject;
-
             // Check if the clicked object is a selectable character
             if (clickedObject.CompareTag("Characters") && !clickedObject.GetComponent<CharacterSelectionAndMove>().gotSelect)
             {
                 // Deselect the currently selected character (if any)
-                clickedObject.GetComponent<CharacterSelectionAndMove>().DeselectCharacter();
+                //clickedObject.GetComponent<CharacterSelectionAndMove>().DeselectCharacter();
 
                 // Select the clicked character
                 //clickedObject.GetComponent<CharacterSelectionAndMove>().SelectCharacter();

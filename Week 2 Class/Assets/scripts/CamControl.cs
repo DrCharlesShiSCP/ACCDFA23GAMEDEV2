@@ -8,14 +8,21 @@ public class CamControl : MonoBehaviour
 
     void Update()
     {
-        // Get the current position of the cursor in screen space
-        Vector3 cursorPosition = Input.mousePosition;
-
-        // Convert the screen space cursor position to world space
-        cursorPosition.z = transform.position.z - Camera.main.transform.position.z;
-        Vector3 targetPosition = Camera.main.ScreenToWorldPoint(cursorPosition);
-
-        // Move the camera toward the cursor's position
-        transform.position = Vector3.Lerp(transform.position, targetPosition, cameraSpeed * Time.deltaTime);
+        if (Input.GetKey(KeyCode.W))
+        {
+            this.transform.localPosition += new Vector3(0, 0, 1) * Time.deltaTime* cameraSpeed;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            this.transform.localPosition -= new Vector3(0, 0, 1) * Time.deltaTime * cameraSpeed;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            this.transform.localPosition -= new Vector3(1, 0, 0) * Time.deltaTime * cameraSpeed;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            this.transform.localPosition += new Vector3(1, 0, 0) * Time.deltaTime * cameraSpeed;
+        }
     }
 }

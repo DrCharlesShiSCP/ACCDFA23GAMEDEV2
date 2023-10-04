@@ -6,6 +6,11 @@ TagManager:
   tags:
   - Ground
   - Characters
+  - Box
+  - WinPos
+  - firewall
+  - waterwall
+  - electricwall
   layers:
   - Default
   - TransparentFX
@@ -13,12 +18,12 @@ TagManager:
   - Ground
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Fire
+  - Water
+  - Electric
+  - FireWall
+  - WaterWall
+  - ElectricWall
   - 
   - 
   - 
