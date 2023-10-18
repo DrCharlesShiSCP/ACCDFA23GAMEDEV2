@@ -33,5 +33,6 @@ public class menu : MonoBehaviour
     public void Retry()
     {
         SceneManager.LoadScene("MainGame");
+        Time.timeScale = 1.0f;
     }
 }

@@ -22,6 +22,10 @@ public class gameOver : MonoBehaviour
         {
             ShowGameOverScreen();
         }
+        if (collision.gameObject.CompareTag("spike"))
+        {
+            ShowGameOverScreen();
+        }
         if (collision.gameObject.CompareTag("destin"))
         {
             ShowWin1();
