@@ -3353,10 +3353,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f1bfe2e94237c74581922eadc3e489b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerRigidbody: {fileID: 1573768945}
   player: {fileID: 1573768940}
-  moveAmount: 1
-  rollSpeed: 0.5
+  moveAmount: 5
+  rollSpeed: 3
+  rb: {fileID: 1573768945}
+  maxJumps: 3
 --- !u!114 &1573768947
 MonoBehaviour:
   m_ObjectHideFlags: 0
