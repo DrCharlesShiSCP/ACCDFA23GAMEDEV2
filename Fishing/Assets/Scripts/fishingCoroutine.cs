@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class fishingCoroutine : MonoBehaviour
 {
@@ -12,19 +13,25 @@ public class fishingCoroutine : MonoBehaviour
     [SerializeField] private float baitspeed= 0.1f;
     [SerializeField] private float fishspeed = 0.5f;
     [SerializeField] private float catchTimeWindow = 3.0f;
-    public GameObject fishgotaway; // The canvas containing your menu UI
+    [SerializeField] private Canvas caught;
+    private float originalTimeScale;
+    public GameObject fishgotaway;//menu canvas
     bool playerReacted = false;
-    [SerializeField] private TMP_Text textObject;
+    [SerializeField] private TMP_Text reel;
     private Vector3 originalPosition;
     LineRenderer lineRenderer;
 
     private void Start()
     {
+        caught.gameObject.SetActive(false);
+        if (!caught) Debug.LogError("Please assign the Canvas component in the inspector.");
+        originalTimeScale = Time.timeScale;
+        caught.gameObject.SetActive(false);
         fishgotaway.SetActive(false);
         bait.SetActive(false);
         bait.transform.position = handpoint.transform.position;
-        originalPosition = textObject.transform.position;
-        textObject.gameObject.SetActive(false);
+        originalPosition = reel.transform.position;
+        reel.gameObject.SetActive(false);
 
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
@@ -109,13 +116,28 @@ public class fishingCoroutine : MonoBehaviour
             if (Vector3.Distance(fish.transform.position, handpoint.transform.position) < 0.05f)
             {
                 // TODO 鱼到手里了
-                break;
+                PauseGame();
+                caught.gameObject.SetActive(true);
+                reel.gameObject.SetActive(false);
             }
 
             yield return null;
         }
     }
-
+    void PauseGame()
+    {
+        Time.timeScale = 0f;
+    }
+    public void ResumeGame()
+    {
+        Time.timeScale = originalTimeScale;
+        caught.gameObject.SetActive(false);
+    }
+    public void ReloadActiveScene()
+    {
+        Time.timeScale = 1f; // Reset the timescale
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the active scene
+    }
     IEnumerator FishApproaches()
     {
         var baitPos = bait.transform.position;
@@ -138,7 +160,7 @@ public class fishingCoroutine : MonoBehaviour
     // 检查玩家是否在一个时间窗口内按空格键
     IEnumerator CatchFish(float shakeDuration = 5f, float shakeMagnitude = 2f)
     {
-        textObject.gameObject.SetActive(true);
+        reel.gameObject.SetActive(true);
         StartCoroutine(ShakeText(shakeDuration, shakeMagnitude));
         var time = 0f;
         bool catchedFish = false;
@@ -176,13 +198,13 @@ public class fishingCoroutine : MonoBehaviour
             float x = Random.Range(-1f, 1f) * magnitude;
             float y = Random.Range(-1f, 1f) * magnitude;
 
-            textObject.transform.position = new Vector3(originalPosition.x + x, originalPosition.y + y, originalPosition.z);
+            reel.transform.position = new Vector3(originalPosition.x + x, originalPosition.y + y, originalPosition.z);
             elapsed += Time.deltaTime;
 
             yield return null;
         }
 
-        textObject.transform.position = originalPosition; // Reset back to original position after shaking
+        reel.transform.position = originalPosition; // Reset back to original position after shaking
     }
     IEnumerator CastLine()
     {
@@ -193,8 +215,9 @@ public class fishingCoroutine : MonoBehaviour
     IEnumerator FishGotAway()
     {
         Debug.Log("fishgotaway");
-        yield return new WaitForSeconds(5);  // time it takes for fish to escape
+        yield return new WaitForSeconds(3);  // time it takes for fish to escape
         fishgotaway.gameObject.SetActive(true);
+        reel.gameObject.SetActive(false);
     }
     IEnumerator MoveFishToBait()
     {

@@ -18,7 +18,7 @@ public class Bait : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player"))  // Assuming your player GameObject has a tag named "Player"
+        if (collision.gameObject.CompareTag("Player"))
         {
             caught.gameObject.SetActive(true);
         }
