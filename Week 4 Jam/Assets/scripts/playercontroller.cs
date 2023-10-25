@@ -37,6 +37,7 @@ public class NewBehaviourScript : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && remainingJumps > 0)
         {
             Jump();
+            UpdateJumpText(); // Update the jump text after each jump
         }
     }
     void FixedUpdate()
@@ -67,6 +68,7 @@ public class NewBehaviourScript : MonoBehaviour
         {
             // Reset the jump count
             ResetJumpCount();
+            UpdateJumpText(); // Update the jump text after each jump
         }
     }
     void UpdateJumpText()
