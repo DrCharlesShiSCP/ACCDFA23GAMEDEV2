@@ -4,6 +4,7 @@ using UnityEngine.Serialization;
 using TMPro;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
+using System.Xml;
 
 public class fishingCoroutine : MonoBehaviour
 {
@@ -70,7 +71,7 @@ public class fishingCoroutine : MonoBehaviour
 
         while (true)
         {
-            bait.gameObject.transform.position += throwDir * 0.1f;
+            bait.gameObject.transform.position += throwDir * baitspeed *Time.deltaTime;
             lineRenderer.SetPosition(1, bait.gameObject.transform.position);
 
             if (Vector3.Distance(bait.transform.position, targetPos) < 0.05f)
@@ -131,10 +132,11 @@ public class fishingCoroutine : MonoBehaviour
         dir.Normalize();
         while (true)
         {
-            closestFish.gameObject.transform.position += dir * baitspeed;
+            closestFish.gameObject.transform.position += dir * baitspeed *Time.deltaTime;
             lineRenderer.SetPosition(1, closestFish.gameObject.transform.position);
-           
-            if (Vector3.Distance(closestFish.transform.position, handpoint.transform.position) < 0.1f)
+            var newdir = handpoint.transform.position - closestFish.gameObject.transform.position;
+            newdir.Normalize();
+            if (Vector3.Distance(closestFish.transform.position, handpoint.transform.position) < 0.1f || Vector3.Dot(dir,newdir) < 0)
             {
                 // TODO 鱼到手里了
                 //caught.gameObject.SetActive(true);
@@ -185,7 +187,7 @@ public class fishingCoroutine : MonoBehaviour
         {
             var dir = bait.transform.position - closestFish.transform.position;
             dir.Normalize();
-            closestFish.transform.position += dir * fishspeed;
+            closestFish.transform.position += dir * fishspeed * Time.deltaTime;
 
             // Check if the stopping distance is reached
             if (Vector3.Distance(closestFish.transform.position, baitPos) < stopDistance)
@@ -198,37 +200,53 @@ public class fishingCoroutine : MonoBehaviour
         }
 
         int touchTimes = Random.Range(2, 5);  // Get a random number between 2 and 4 (5 is exclusive)
-
+        Vector3 previousdir = bait.transform.position - closestFish.transform.position;
         // Loop to make the fish move back and forth between the bait and the stop position
         for (int i = 0; i < touchTimes; i++)
         {
             // Move towards the bait
-            while (Vector3.Distance(closestFish.transform.position, baitPos) > 0.05f)
+            previousdir = bait.transform.position - closestFish.transform.position;
+            previousdir.Normalize();
+            while (Vector3.Distance(closestFish.transform.position, baitPos) > 0.1f)
             {
                 var dir = bait.transform.position - closestFish.transform.position;
+                dir.y = 0;
+                //if(dir.magnitude < 0.01f);
                 dir.Normalize();
-                closestFish.transform.position += dir * fishspeed;
+                if(Vector3.Dot(dir,previousdir) < 0)
+                {
+                    break;
+                }
+                closestFish.transform.position += dir * fishspeed * Time.deltaTime;
+                previousdir = dir;
                 yield return null;
             }
-
+            Debug.Log("moveforward");
             yield return new WaitForSeconds(0.01f);  // Pause for a second at the bait
 
             // Move back to the stop position
-            while (Vector3.Distance(closestFish.transform.position, stopPosition) > 0.05f)
+            while (Vector3.Distance(closestFish.transform.position, stopPosition) > 0.1f)
             {
                 var dir = stopPosition - closestFish.transform.position;
                 dir.Normalize();
-                closestFish.transform.position += dir * fishspeed;
+                closestFish.transform.position += dir * fishspeed * Time.deltaTime;
                 yield return null;
             }
-
+            Debug.Log("moveback");
             yield return new WaitForSeconds(1f);  // Pause for a second at the stop position
         }
+        previousdir = bait.transform.position - closestFish.transform.position;
+        previousdir.Normalize();
         while (Vector3.Distance(closestFish.transform.position, baitPos) > 0.05f)
         {
             var dir = bait.transform.position - closestFish.transform.position;
+            dir.y = 0;
             dir.Normalize();
-            closestFish.transform.position += dir * fishspeed;
+            if (Vector3.Dot(dir, previousdir) < 0)
+            {
+                break;
+            }
+            closestFish.transform.position += dir * fishspeed *Time.deltaTime;
             yield return null;
         }
 
