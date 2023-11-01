@@ -3,42 +3,46 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using TMPro;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class fishingCoroutine : MonoBehaviour
 {
     [SerializeField] private GameObject player;
-    [SerializeField] private GameObject fish;
+    [SerializeField] private GameObject[] fishArray;  // Changed to array
     [SerializeField] private GameObject bait;
     [SerializeField] private GameObject handpoint;
-    [SerializeField] private float baitspeed= 0.1f;
+    [SerializeField] private float baitspeed = 0.1f;
     [SerializeField] private float fishspeed = 0.5f;
     [SerializeField] private float catchTimeWindow = 3.0f;
-    [SerializeField] private Canvas caught;
+    [SerializeField] private float stopDistance = 0.5f;
+    /*[SerializeField] private Canvas caught1Canvas;
+    [SerializeField] private Canvas caught2Canvas;
+    [SerializeField] private Canvas caught3Canvas;*/
+
+    //[SerializeField] private Canvas caught;
+    private GameObject closestFish;
     private float originalTimeScale;
-    public GameObject fishgotaway;//menu canvas
+    public GameObject fishgotaway;
     bool playerReacted = false;
-    [SerializeField] private TMP_Text reel;
     private Vector3 originalPosition;
     LineRenderer lineRenderer;
 
     private void Start()
     {
-        caught.gameObject.SetActive(false);
-        if (!caught) Debug.LogError("Please assign the Canvas component in the inspector.");
         originalTimeScale = Time.timeScale;
-        caught.gameObject.SetActive(false);
         fishgotaway.SetActive(false);
         bait.SetActive(false);
         bait.transform.position = handpoint.transform.position;
-        originalPosition = reel.transform.position;
-        reel.gameObject.SetActive(false);
-
+        //caught.gameObject.SetActive(false);
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
         lineRenderer.widthMultiplier = 0.05f;
         lineRenderer.positionCount = 2;
         lineRenderer.SetPosition(0, handpoint.gameObject.transform.position);
         lineRenderer.SetPosition(1, handpoint.gameObject.transform.position);
+        /*caught1Canvas.gameObject.SetActive(false);
+        caught2Canvas.gameObject.SetActive(false);
+        caught3Canvas.gameObject.SetActive(false);*/
     }
 
     private bool throwBait = false;
@@ -48,7 +52,7 @@ public class fishingCoroutine : MonoBehaviour
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-            if (Physics.Raycast(ray, out hit, 500, LayerMask.GetMask("WaterBody")))
+            if (Physics.Raycast(ray, out hit, 500) && hit.collider.gameObject.name != "island") 
             {
                 throwBait = true;
                 Debug.Log(hit.point);
@@ -75,19 +79,35 @@ public class fishingCoroutine : MonoBehaviour
             }
             yield return null;
         }
-
+        closestFish = GetClosestFish(bait.transform.position);
         // 调用鱼接近的协程
-        yield return FishApproaches();
+        yield return FishApproaches(closestFish);
         yield return CatchFish();
     }
+    GameObject GetClosestFish(Vector3 baitPos)
+    {
+        GameObject closestFish = null;
+        float closestDistance = float.MaxValue;
 
+        foreach (var fish in fishArray)
+        {
+            float distance = Vector3.Distance(baitPos, fish.transform.position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestFish = fish;
+            }
+        }
+
+        return closestFish;
+    }
     IEnumerator FishingSequence()
     {
         // Cast the line
         yield return StartCoroutine(CastLine());
 
         // Fish approaches the bait
-        yield return StartCoroutine(FishApproaches());
+        yield return StartCoroutine (FishApproaches(closestFish));
 
         // Give the player a window of time to react
         yield return new WaitForSeconds(3);  // window to press space
@@ -95,7 +115,7 @@ public class fishingCoroutine : MonoBehaviour
         if (playerReacted)  // Check the flag to see if the player pressed space in time
         {
             playerReacted = false;  // Reset the flag for the next attempt
-            yield return StartCoroutine(ReelFish());
+            yield return StartCoroutine(ReelFish(closestFish));
         }
         else
         {
@@ -104,26 +124,45 @@ public class fishingCoroutine : MonoBehaviour
         }
     }
 
-    IEnumerator ReelFish()
+    IEnumerator ReelFish(GameObject closestFish)
     { 
-        lineRenderer.SetPosition(1, fish.gameObject.transform.position);
-        var dir = handpoint.transform.position - fish.gameObject.transform.position;
+        lineRenderer.SetPosition(1, closestFish.gameObject.transform.position);
+        var dir = handpoint.transform.position - closestFish.gameObject.transform.position;
         dir.Normalize();
         while (true)
         {
-            fish.gameObject.transform.position += dir * baitspeed;
-            lineRenderer.SetPosition(1, fish.gameObject.transform.position);
-            if (Vector3.Distance(fish.transform.position, handpoint.transform.position) < 0.05f)
+            closestFish.gameObject.transform.position += dir * baitspeed;
+            lineRenderer.SetPosition(1, closestFish.gameObject.transform.position);
+           
+            if (Vector3.Distance(closestFish.transform.position, handpoint.transform.position) < 0.1f)
             {
                 // TODO 鱼到手里了
+                //caught.gameObject.SetActive(true);
+                Debug.Log("inhand");
+                /*switch (closestFish.tag)
+                {
+                    case "fishe1":
+                        caught1Canvas.gameObject.SetActive(true);
+                        break;
+                    case "fishe2":
+                        caught2Canvas.gameObject.SetActive(true);
+                        break;
+                    case "fishe3":
+                        caught3Canvas.gameObject.SetActive(true);
+                        break;
+                    default:
+                        Debug.LogWarning("Unknown fish type: " + closestFish.tag);
+                        break;
+                }*/
+
                 PauseGame();
-                caught.gameObject.SetActive(true);
-                reel.gameObject.SetActive(false);
+                break;
             }
 
             yield return null;
         }
     }
+
     void PauseGame()
     {
         Time.timeScale = 0f;
@@ -131,80 +170,147 @@ public class fishingCoroutine : MonoBehaviour
     public void ResumeGame()
     {
         Time.timeScale = originalTimeScale;
-        caught.gameObject.SetActive(false);
     }
     public void ReloadActiveScene()
     {
         Time.timeScale = 1f; // Reset the timescale
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the active scene
     }
-    IEnumerator FishApproaches()
+    IEnumerator FishApproaches(GameObject closestFish)
     {
         var baitPos = bait.transform.position;
-        var dir = bait.transform.position - fish.transform.position;
-        dir.Normalize();
+        Vector3 stopPosition = Vector3.zero;  // variable to record the stop position
+
         while (true)
         {
-            fish.transform.position += dir * fishspeed;
-            if (Vector3.Distance(fish.transform.position, baitPos) < 0.05f)
+            var dir = bait.transform.position - closestFish.transform.position;
+            dir.Normalize();
+            closestFish.transform.position += dir * fishspeed;
+
+            // Check if the stopping distance is reached
+            if (Vector3.Distance(closestFish.transform.position, baitPos) < stopDistance)
             {
-                break;
+                stopPosition = closestFish.transform.position;  // record the stop position
+                break;  // exit the loop
             }
 
             yield return null;
         }
-        
+
+        int touchTimes = Random.Range(2, 5);  // Get a random number between 2 and 4 (5 is exclusive)
+
+        // Loop to make the fish move back and forth between the bait and the stop position
+        for (int i = 0; i < touchTimes; i++)
+        {
+            // Move towards the bait
+            while (Vector3.Distance(closestFish.transform.position, baitPos) > 0.05f)
+            {
+                var dir = bait.transform.position - closestFish.transform.position;
+                dir.Normalize();
+                closestFish.transform.position += dir * fishspeed;
+                yield return null;
+            }
+
+            yield return new WaitForSeconds(0.01f);  // Pause for a second at the bait
+
+            // Move back to the stop position
+            while (Vector3.Distance(closestFish.transform.position, stopPosition) > 0.05f)
+            {
+                var dir = stopPosition - closestFish.transform.position;
+                dir.Normalize();
+                closestFish.transform.position += dir * fishspeed;
+                yield return null;
+            }
+
+            yield return new WaitForSeconds(1f);  // Pause for a second at the stop position
+        }
+        while (Vector3.Distance(closestFish.transform.position, baitPos) > 0.05f)
+        {
+            var dir = bait.transform.position - closestFish.transform.position;
+            dir.Normalize();
+            closestFish.transform.position += dir * fishspeed;
+            yield return null;
+        }
+
         bait.gameObject.SetActive(false);
-    }
-    
-    // 检查玩家是否在一个时间窗口内按空格键
-    IEnumerator CatchFish(float shakeDuration = 5f, float shakeMagnitude = 2f)
-    {
-        reel.gameObject.SetActive(true);
-        StartCoroutine(ShakeText(shakeDuration, shakeMagnitude));
-        var time = 0f;
-        bool catchedFish = false;
-        while (time < catchTimeWindow)
+        bool playerClicked = false;
+        float reactionTime = 1.5f;  // 设置反应时间为1.5秒
+        float elapsedTime = 0f;
+
+        while (elapsedTime < reactionTime)
         {
-            // 在时间窗口内按下空格键
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetMouseButtonDown(0))
             {
-                catchedFish = true;
-                break;
+                playerClicked = true;
+                break;  // 如果玩家点击，立即跳出循环
             }
 
-            time += Time.deltaTime;
+            elapsedTime += Time.deltaTime;  // 更新经过的时间
             yield return null;
         }
 
-        // 如果捉到了鱼
-        if (catchedFish)
+        if (playerClicked)
         {
-            yield return ReelFish();
+            // 如果玩家点击，进入CatchFish协程
+            yield return CatchFish();
         }
         else
         {
-            // TODO 失败
+            // 如果玩家未点击，进入FishGotAway协程
             yield return FishGotAway();
         }
 
     }
-    IEnumerator ShakeText(float duration, float magnitude)
+
+
+    // 检查玩家是否在一个时间窗口内按鼠标
+    IEnumerator CatchFish()
     {
-        float elapsed = 0f;
+        GameObject closestFish = GetClosestFish(bait.transform.position);
 
-        while (elapsed < duration)
+        var baitPos = bait.transform.position;
+        float angle = 0f;
+        float radius = 1.5f;
+        float speed = 10f;
+        float time = 0f;
+        bool catchedFish = false;
+        int requiredClicks = 10;  // Set the number of required clicks to catch the fish
+        int clickCount = 0;
+        float catchTimeout = 6f;  // 6 seconds timeout
+        float catchTimeElapsed = 0f;  // Time elapsed since catching process started
+
+        while (clickCount < requiredClicks && catchTimeElapsed < catchTimeout)
         {
-            float x = Random.Range(-1f, 1f) * magnitude;
-            float y = Random.Range(-1f, 1f) * magnitude;
+            // Check for mouse clicks
+            if (Input.GetMouseButtonDown(0))
+            {
+                clickCount++;
+                if (clickCount >= requiredClicks)
+                {
+                    catchedFish = true;
+                    break;
+                }
+            }
 
-            reel.transform.position = new Vector3(originalPosition.x + x, originalPosition.y + y, originalPosition.z);
-            elapsed += Time.deltaTime;
+            float x = baitPos.x + radius * Mathf.Cos(angle);
+            float z = baitPos.z + radius * Mathf.Sin(angle);
+            closestFish.transform.position = new Vector3(x, closestFish.transform.position.y, z);
+            angle += speed * Time.deltaTime;
 
+            time += Time.deltaTime;
+            catchTimeElapsed += Time.deltaTime;
             yield return null;
         }
 
-        reel.transform.position = originalPosition; // Reset back to original position after shaking
+        if (catchedFish)
+        {
+            yield return ReelFish(closestFish);  // Reel in the fish if it's caught
+        }
+        else
+        {
+            Debug.Log("escape");
+            yield return FishGotAway();  // The fish got away
+        }
     }
     IEnumerator CastLine()
     {
@@ -215,17 +321,8 @@ public class fishingCoroutine : MonoBehaviour
     IEnumerator FishGotAway()
     {
         Debug.Log("fishgotaway");
-        yield return new WaitForSeconds(3);  // time it takes for fish to escape
         fishgotaway.gameObject.SetActive(true);
-        reel.gameObject.SetActive(false);
-    }
-    IEnumerator MoveFishToBait()
-    {
-        yield return new WaitForSeconds(2);
-        fish.transform.position = bait.transform.position;
-    }
-    private void OnCollisionEnter(Collision collision)
-    {
-        
+        Time.timeScale = 0f;
+        yield return null;  // time it takes for fish to escape
     }
 }
