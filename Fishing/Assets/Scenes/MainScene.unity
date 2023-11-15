@@ -2694,8 +2694,8 @@ MonoBehaviour:
   - {fileID: 2045664128}
   bait: {fileID: 672054278}
   handpoint: {fileID: 1651489466}
-  baitspeed: 0.1
-  fishspeed: 0.01
+  baitspeed: 30
+  fishspeed: 5.4
   catchTimeWindow: 5
   stopDistance: 1
   fishgotaway: {fileID: 1438502656}

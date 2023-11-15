@@ -1,0 +1,4 @@
+repository "Squre Round@DiversityGame@cloud"
+  path "/"
+    br "/main"
+    co "/main"
