@@ -1,0 +1,4 @@
+repository "Final Project Game Dev 2023 Fall@SCPDRCS@cloud"
+  path "/"
+    br "/main"
+    co "/main"
