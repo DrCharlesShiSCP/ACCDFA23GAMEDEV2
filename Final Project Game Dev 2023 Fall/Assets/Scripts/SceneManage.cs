@@ -16,24 +16,40 @@ public class SceneManage : MonoBehaviour
     {
         
     }
-    public void hazard()
+    public void LoadHazardsScene()
     {
         SceneManager.LoadScene("Hazards");
     }
-    public void gravity()
+    public void LoadGravityScene()
     {
         SceneManager.LoadScene("Gravity Manipulation");
     }
-    public void platform()
+    public void LoadDrop()
+    {
+        SceneManager.LoadScene("Drop");
+    }
+    public void LoadChallenge2()
+    {
+        SceneManager.LoadScene("Challenge2");
+    }
+    public void LoadChallenge3()
+    {
+        SceneManager.LoadScene("Challenge3");
+    }
+    public void LoadMovingPlatScene()
     {
         SceneManager.LoadScene("Moving Platforms");
     }
-    public void menu()
+    public void LoadChallenge()
     {
-        SceneManager.LoadScene("Menu");
+        SceneManager.LoadScene("Challenge1");
     }
-    public void darkness()
+    public void LoadDarkness()
     {
         SceneManager.LoadScene("Darkness");
+    }
+    public void LoadChallenge4()
+    {
+        SceneManager.LoadScene("Challenge4");
     }
 }

@@ -27,7 +27,6 @@ public class GravityManage : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleMovement();
         HandleGravityInput();
     }
     void HandleMovement()
@@ -44,7 +43,7 @@ public class GravityManage : MonoBehaviour
         Vector3 movement = (forward * moveVertical + right * moveHorizontal).normalized;
 
         // Apply movement
-        rb.MovePosition(transform.position + movement * moveSpeed * Time.deltaTime);
+        rb.MovePosition(transform.position + movement * moveSpeed * Time.fixedDeltaTime);
     }
     void HandleGravityInput()
     {
@@ -70,6 +69,7 @@ public class GravityManage : MonoBehaviour
         // Apply custom gravity
         rb.AddForce(Physics.gravity, ForceMode.Acceleration);
         MaintainUprightOrientation();
+        HandleMovement();
     }
     void MaintainUprightOrientation()
     {
@@ -78,7 +78,7 @@ public class GravityManage : MonoBehaviour
         Quaternion targetRotation = Quaternion.FromToRotation(-playerTransform.up, gravityDirection) * playerTransform.rotation;
 
         // Smoothly rotate the player to maintain upright orientation
-        playerTransform.rotation = Quaternion.Slerp(playerTransform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        playerTransform.rotation = Quaternion.Slerp(playerTransform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
     }
     void FlipGravity(Vector3 newGravityDirection)
     {
@@ -112,13 +112,38 @@ public class GravityManage : MonoBehaviour
         {
             ReloadCurrentScene();
         }
-        else if (collision.gameObject.CompareTag("hazards"))
+        else if (collision.gameObject.CompareTag("challenge1pass"))
         {
             LoadDarkness();
         }
         else if (collision.gameObject.CompareTag("trap"))
         {
             FlipGravity(gravityUp);
+        }
+        else if (collision.gameObject.CompareTag("darkpass"))
+        {
+            LoadChallenge2();
+        }
+        else if (collision.gameObject.CompareTag("challenge2pass"))
+        {
+            LoadChallenge3();
+        }
+        else if (collision.gameObject.CompareTag("challenge3pass"))
+        {
+            LoadDrop();
+        }
+        else if (collision.gameObject.CompareTag("droppass"))
+        {
+            LoadChallenge4();
+        }
+        else if (collision.gameObject.CompareTag("challenge4"))
+        {
+            LoadMenu();
+        }
+        void LoadChallenge4()
+        {
+            SceneManager.LoadScene("Challenge4");
+            FlipGravity(gravityDown);
         }
         void ReloadCurrentScene()
         {
@@ -130,27 +155,42 @@ public class GravityManage : MonoBehaviour
 
         void LoadHazardsScene()
         {
-            // Load the "Hazards" scene
             SceneManager.LoadScene("Hazards");
+            FlipGravity(gravityDown);
+        }
+        void LoadDrop()
+        {
+            SceneManager.LoadScene("Drop");
+            FlipGravity(gravityDown);
+        }
+        void LoadChallenge2()
+        {
+            SceneManager.LoadScene("Challenge2");
+            FlipGravity(gravityDown);
+        }
+        void LoadChallenge3()
+        {
+            SceneManager.LoadScene("Challenge3");
             FlipGravity(gravityDown);
         }
         void LoadMovingPlatScene()
         {
-            // Load the "Hazards" scene
             SceneManager.LoadScene("Moving Platforms");
             FlipGravity(gravityDown);
         }
         void LoadChallenge()
         {
-            // Load the "Hazards" scene
             SceneManager.LoadScene("Challenge1");
             FlipGravity(gravityDown);
         }
         void LoadDarkness()
         {
-            // Load the "Hazards" scene
             SceneManager.LoadScene("Darkness");
             FlipGravity(gravityDown);
+        }
+        void LoadMenu()
+        {
+            SceneManager.LoadScene("Menu");
         }
     }
 }

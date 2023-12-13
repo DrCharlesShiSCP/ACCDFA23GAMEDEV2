@@ -11,6 +11,11 @@ TagManager:
   - passhaz
   - platpass
   - challenge1pass
+  - challenge2pass
+  - darkpass
+  - challenge3pass
+  - droppass
+  - challenge4
   layers:
   - Default
   - TransparentFX
